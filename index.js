@@ -21,13 +21,18 @@ app.use(cors());
 app.use(express.json()); // Objeto js usable como objeto de js
 
 // Rutas
-app.get('/mensaje', (req, res) => {
-    console.log('Se ha ejecutado el endpoint /mensaje');
+const rutas_articulo = require('./routes/aticles_routes');
 
-    return res.status(200).json({
-        mensaje: '¡Hola! Esta es una prueba de tu API.',
-    });
-});
+// Carga de las rutas de articulo
+app.use('/api', rutas_articulo);
+
+// app.get('/mensaje', (req, res) => {
+//     console.log('Se ha ejecutado el endpoint /mensaje');
+
+//     return res.status(200).json({
+//         mensaje: '¡Hola! Esta es una prueba de tu API.',
+//     });
+// });
 
 // Alsar servidor y escuchar peticiones
 app.listen(puerto, () => {
