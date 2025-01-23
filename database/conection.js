@@ -7,7 +7,7 @@ const conection = async () => {
         // Uso de mongoose
         await mongoose.connect('mongodb://localhost:27017/mi_blog');
         // Conexion exitosa
-        console.log('MONGO conect');
+        console.log('MONGO CONECTADO');
     } catch (error) {
         // Mostrando el error
         console.log(error);
