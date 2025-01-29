@@ -1,4 +1,6 @@
 const validator = require('validator');
+const Articulo = require('../models/Article');
+
 // const controller = {
 //     properties: () => {
 
@@ -14,8 +16,16 @@ const prueba = (req, res) => {
 
 // Accion agregar
 const agregar = (req, res) => {
-    // Recoger parametros por post a guardar
+    // Recoger parámetros por POST
     let parametros = req.body;
+
+    // Verificar que parametros no sea undefined o nulo
+    if (!parametros || !parametros.titulo || !parametros.contenido) {
+        return res.status(400).json({
+            status: 'error',
+            mensaje: 'Faltan datos por enviar',
+        });
+    }
 
     // Validar datos
     try {
@@ -25,7 +35,7 @@ const agregar = (req, res) => {
         let validar_contenido = !validator.isEmpty(parametros.contenido);
 
         if (!validar_titulo || !validar_contenido) {
-            throw new Error('No se ha validado la informacion!!');
+            throw new Error('No se ha validado la información!!');
         }
     } catch (error) {
         return res.status(400).json({
@@ -34,17 +44,28 @@ const agregar = (req, res) => {
         });
     }
 
-    // Agregar el objeto a guardar
-
-    // Asignar valores a objeto basado en el modelo manual o automatico
-
-    // Guardar el articulo en la base de datos
-
-    // Devolver el resultado
-    return res.status(200).json({
-        mensaje: 'Accion de guardado',
-        parametros,
+    // Crear el objeto basado en el modelo
+    const articulo = new Articulo({
+        titulo: parametros.titulo,
+        contenido: parametros.contenido,
     });
+
+    // Guardar el artículo en la base de datos
+    articulo
+        .save()
+        .then(articuloGuardado => {
+            return res.status(200).json({
+                status: 'success',
+                articulo: articuloGuardado,
+                mensaje: 'Artículo guardado correctamente',
+            });
+        })
+        .catch(error => {
+            return res.status(400).json({
+                status: 'error',
+                mensaje: 'No se ha guardado el artículo',
+            });
+        });
 };
 
 module.exports = {
