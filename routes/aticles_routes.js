@@ -11,6 +11,8 @@ router.get('/ruta-prueba', ArticleController.prueba);
 router.post('/agregar', ArticleController.agregar);
 // Parametros opcionales ?
 router.get('/obtener-articulos', ArticleController.conseguirArticulos);
+// Obtener un articulo mediante busqueda
+router.get('/search-article/:id', ArticleController.oneArticle);
 
 // Exportacion de la ruta
 module.exports = router;

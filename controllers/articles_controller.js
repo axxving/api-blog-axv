@@ -62,6 +62,7 @@ const agregar = (req, res) => {
         });
 };
 
+// Accion obtener
 const conseguirArticulos = async (req, res) => {
     try {
         // Obtener el parámetro opcional 'limit' desde la query, con valor predeterminado de 0 (sin límite)
@@ -91,8 +92,39 @@ const conseguirArticulos = async (req, res) => {
     }
 };
 
+// Buscar un articulo por su id
+const oneArticle = async (req, res) => {
+    try {
+        // Recoger el id de la URL
+        let id = req.params.id;
+
+        // Buscar el artículo en la base de datos
+        let articulo = await Articulo.findById(id);
+
+        // Si no existe, devolver un error
+        if (!articulo) {
+            return res.status(404).json({
+                status: 'error',
+                mensaje: 'No se ha encontrado el artículo',
+            });
+        }
+
+        // Devolver resultado
+        return res.status(200).json({
+            status: 'success',
+            articulo,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            mensaje: 'Error al buscar el artículo',
+        });
+    }
+};
+
 module.exports = {
     prueba,
     agregar,
     conseguirArticulos,
+    oneArticle,
 };
