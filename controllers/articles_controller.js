@@ -1,4 +1,6 @@
 const Article = require('../models/Article');
+const fs = require('fs');
+const path = require('path');
 
 // Acción de prueba
 const prueba = (req, res) => {
@@ -147,6 +149,114 @@ const editArticle = async (req, res) => {
     }
 };
 
+// Subir un fichero a mongo
+const subir = async (req, res) => {
+    try {
+        // Verificar si hay un archivo subido
+        if (!req.file) {
+            return res.status(400).json({
+                status: 'error',
+                mensaje: 'No se ha subido ninguna imagen.',
+            });
+        }
+
+        // Nombre del archivo subido
+        let filePath = req.file.path;
+        let fileName = req.file.filename;
+        let fileExtension = path.extname(fileName).toLowerCase();
+
+        // Validar la extensión del archivo
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+        if (!allowedExtensions.includes(fileExtension)) {
+            fs.unlinkSync(filePath); // Eliminar el archivo no válido
+            return res.status(400).json({
+                status: 'error',
+                mensaje:
+                    'Extensión no válida. Solo se permiten imágenes JPG, PNG, GIF.',
+            });
+        }
+
+        // Obtener el ID del artículo
+        let articleId = req.params.id;
+
+        // Actualizar el artículo con la imagen
+        let articuloActualizado = await Article.findByIdAndUpdate(
+            articleId,
+            { image: fileName },
+            { new: true }
+        );
+
+        if (!articuloActualizado) {
+            return res.status(404).json({
+                status: 'error',
+                mensaje:
+                    'No se encontró el artículo para actualizar con la imagen.',
+            });
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            articulo: articuloActualizado,
+            file: fileName,
+            mensaje: 'Imagen subida correctamente.',
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            mensaje: 'Error al subir la imagen.',
+            error: error.message,
+        });
+    }
+};
+
+// Obtener imagen específica o listar todas las imágenes disponibles
+// Obtener imagen específica o listar todas las imágenes disponibles
+const getImage = async (req, res) => {
+    try {
+        // Obtener el nombre de la imagen desde los parámetros de la URL
+        const imageName = req.params.image;
+
+        // Ruta donde están almacenadas las imágenes
+        const directoryPath = path.join(__dirname, '../imagenes/articulos');
+
+        // Si no se proporciona un nombre de imagen, devolver la lista de imágenes
+        if (!imageName) {
+            fs.readdir(directoryPath, (err, files) => {
+                if (err) {
+                    return res.status(500).json({
+                        status: 'error',
+                        mensaje: 'Error al obtener la lista de imágenes.',
+                    });
+                }
+
+                return res.status(200).json({
+                    status: 'success',
+                    imagenes: files,
+                });
+            });
+            return;
+        }
+
+        // Si se proporciona un nombre de imagen, devolver el archivo
+        const imagePath = path.join(directoryPath, imageName);
+
+        if (fs.existsSync(imagePath)) {
+            return res.sendFile(imagePath);
+        } else {
+            return res.status(404).json({
+                status: 'error',
+                mensaje: 'La imagen no existe en el servidor.',
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            mensaje: 'Error al procesar la solicitud.',
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
     prueba,
     agregar,
@@ -154,4 +264,6 @@ module.exports = {
     oneArticle,
     deleteArticle,
     editArticle,
+    subir,
+    getImage,
 };
