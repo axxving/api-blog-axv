@@ -1,12 +1,6 @@
 const validator = require('validator');
 const Articulo = require('../models/Article');
 
-// const controller = {
-//     properties: () => {
-
-//     },
-// };
-
 // Accion
 const prueba = (req, res) => {
     return res.status(200).json({
@@ -68,7 +62,37 @@ const agregar = (req, res) => {
         });
 };
 
+const conseguirArticulos = async (req, res) => {
+    try {
+        // Obtener el parámetro opcional 'limit' desde la query, con valor predeterminado de 0 (sin límite)
+        let limite = parseInt(req.query.limit) || 0;
+
+        // Consultar artículos ordenados por fecha de creación descendente y aplicar el límite
+        let articulos = await Articulo.find({})
+            .sort({ fecha: -1 }) // Ordenar por fecha descendente (el más reciente primero)
+            .limit(limite); // Aplicar límite si se proporciona
+
+        if (!articulos || articulos.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                mensaje: 'No se han encontrado artículos',
+            });
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            articulos,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            mensaje: 'Error al consultar los artículos',
+        });
+    }
+};
+
 module.exports = {
     prueba,
     agregar,
+    conseguirArticulos,
 };

@@ -9,6 +9,8 @@ router.get('/ruta-prueba', ArticleController.prueba);
 
 // Ruta util
 router.post('/agregar', ArticleController.agregar);
+// Parametros opcionales ?
+router.get('/obtener-articulos', ArticleController.conseguirArticulos);
 
 // Exportacion de la ruta
 module.exports = router;
