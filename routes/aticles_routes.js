@@ -13,6 +13,8 @@ router.post('/agregar', ArticleController.agregar);
 router.get('/obtener-articulos', ArticleController.conseguirArticulos);
 // Obtener un articulo mediante busqueda
 router.get('/search-article/:id', ArticleController.oneArticle);
+// Eliminar un articulo
+router.delete('/delete/:id', ArticleController.deleteArticle);
 
 // Exportacion de la ruta
 module.exports = router;

@@ -122,9 +122,41 @@ const oneArticle = async (req, res) => {
     }
 };
 
+// Eliminar un artículo
+const deleteArticle = async (req, res) => {
+    try {
+        // Obtener el id desde los parámetros de la URL
+        let id = req.params.id;
+
+        // Buscar y eliminar el artículo
+        let articuloBorrado = await Articulo.findOneAndDelete({ _id: id });
+
+        // Si el artículo no existe, devolver un error
+        if (!articuloBorrado) {
+            return res.status(404).json({
+                status: 'error',
+                mensaje: 'No se encontró el artículo para eliminar',
+            });
+        }
+
+        // Respuesta exitosa
+        return res.status(200).json({
+            status: 'success',
+            articulo: articuloBorrado,
+            mensaje: 'Se ha eliminado el artículo correctamente',
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            mensaje: 'Error al eliminar el artículo',
+        });
+    }
+};
+
 module.exports = {
     prueba,
     agregar,
     conseguirArticulos,
     oneArticle,
+    deleteArticle,
 };
