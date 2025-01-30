@@ -46,6 +46,7 @@ router.get('/search-article/:id', ArticleController.oneArticle);
 router.delete('/delete/:id', ArticleController.deleteArticle);
 router.put('/editar-articulo/:id', ArticleController.editArticle);
 router.get('/get-image/:image?', ArticleController.getImage);
+router.get('/search/:query', ArticleController.searchArticle);
 
 // Ruta para subir imágenes
 router.post(

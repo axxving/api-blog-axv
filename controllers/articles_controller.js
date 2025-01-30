@@ -210,7 +210,6 @@ const subir = async (req, res) => {
 };
 
 // Obtener imagen específica o listar todas las imágenes disponibles
-// Obtener imagen específica o listar todas las imágenes disponibles
 const getImage = async (req, res) => {
     try {
         // Obtener el nombre de la imagen desde los parámetros de la URL
@@ -257,6 +256,42 @@ const getImage = async (req, res) => {
     }
 };
 
+// Acción para buscar artículos por título o contenido
+const searchArticle = async (req, res) => {
+    try {
+        // Obtener el término de búsqueda desde los parámetros de la URL
+        let searchQuery = req.params.query;
+
+        // Buscar artículos que contengan el término en el título o contenido (insensible a mayúsculas)
+        let articles = await Article.find({
+            $or: [
+                { title: { $regex: searchQuery, $options: 'i' } },
+                { content: { $regex: searchQuery, $options: 'i' } },
+            ],
+        }).sort({ date: -1 });
+
+        // Si no se encuentran artículos, devolver un mensaje adecuado
+        if (!articles.length) {
+            return res.status(404).json({
+                status: 'error',
+                mensaje:
+                    'No se encontraron artículos con ese término de búsqueda.',
+            });
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            articulos: articles,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            mensaje: 'Error al realizar la búsqueda de artículos.',
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
     prueba,
     agregar,
@@ -266,4 +301,5 @@ module.exports = {
     editArticle,
     subir,
     getImage,
+    searchArticle,
 };
