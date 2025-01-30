@@ -1,84 +1,47 @@
-const validator = require('validator');
-const Articulo = require('../models/Article');
+const Article = require('../models/Article');
 
-// Accion
+// Acción de prueba
 const prueba = (req, res) => {
     return res.status(200).json({
-        mensaje: 'Soy una accion de prueba en mi controlador de articulos',
+        mensaje: 'Soy una acción de prueba en mi controlador de artículos',
     });
 };
 
-// Accion agregar
-const agregar = (req, res) => {
-    // Recoger parámetros por POST
-    let parametros = req.body;
-
-    // Verificar que parametros no sea undefined o nulo
-    if (!parametros || !parametros.titulo || !parametros.contenido) {
-        return res.status(400).json({
-            status: 'error',
-            mensaje: 'Faltan datos por enviar',
-        });
-    }
-
-    // Validar datos
+// Acción agregar (sin validaciones)
+const agregar = async (req, res) => {
     try {
-        let validar_titulo =
-            !validator.isEmpty(parametros.titulo) &&
-            validator.isLength(parametros.titulo, { min: 5, max: 15 });
-        let validar_contenido = !validator.isEmpty(parametros.contenido);
+        let parametros = req.body;
+        console.log('Datos recibidos:', parametros);
 
-        if (!validar_titulo || !validar_contenido) {
-            throw new Error('No se ha validado la información!!');
-        }
+        // Mapear `titulo` a `title` y `contenido` a `content`
+        const datosArticulo = {
+            title: parametros.titulo || parametros.title,
+            content: parametros.contenido || parametros.content,
+        };
+
+        // Crear y guardar el artículo
+        const articuloGuardado = await Article.create(datosArticulo);
+
+        return res.status(201).json({
+            status: 'success',
+            articulo: articuloGuardado,
+            mensaje: 'Artículo guardado correctamente',
+        });
     } catch (error) {
-        return res.status(400).json({
+        return res.status(500).json({
             status: 'error',
-            mensaje: 'Faltan datos por enviar',
+            mensaje: 'Error al guardar el artículo',
+            error: error.message,
         });
     }
-
-    // Crear el objeto basado en el modelo
-    const articulo = new Articulo({
-        titulo: parametros.titulo,
-        contenido: parametros.contenido,
-    });
-
-    // Guardar el artículo en la base de datos
-    articulo
-        .save()
-        .then(articuloGuardado => {
-            return res.status(200).json({
-                status: 'success',
-                articulo: articuloGuardado,
-                mensaje: 'Artículo guardado correctamente',
-            });
-        })
-        .catch(error => {
-            return res.status(400).json({
-                status: 'error',
-                mensaje: 'No se ha guardado el artículo',
-            });
-        });
 };
 
-// Accion obtener
+// Obtener todos los artículos con un límite opcional
 const conseguirArticulos = async (req, res) => {
     try {
-        // Obtener el parámetro opcional 'limit' desde la query, con valor predeterminado de 0 (sin límite)
         let limite = parseInt(req.query.limit) || 0;
 
-        // Consultar artículos ordenados por fecha de creación descendente y aplicar el límite
-        let articulos = await Articulo.find({})
-            .sort({ fecha: -1 }) // Ordenar por fecha descendente (el más reciente primero)
-            .limit(limite); // Aplicar límite si se proporciona
-
-        if (!articulos || articulos.length === 0) {
-            return res.status(404).json({
-                status: 'error',
-                mensaje: 'No se han encontrado artículos',
-            });
-        }
+        let articulos = await Article.find({}).sort({ date: -1 }).limit(limite);
 
         return res.status(200).json({
             status: 'success',
@@ -88,20 +51,17 @@ const conseguirArticulos = async (req, res) => {
         return res.status(500).json({
             status: 'error',
             mensaje: 'Error al consultar los artículos',
+            error: error.message,
         });
     }
 };
 
-// Buscar un articulo por su id
+// Buscar un artículo por ID
 const oneArticle = async (req, res) => {
     try {
-        // Recoger el id de la URL
         let id = req.params.id;
+        let articulo = await Article.findById(id);
 
-        // Buscar el artículo en la base de datos
-        let articulo = await Articulo.findById(id);
-
-        // Si no existe, devolver un error
         if (!articulo) {
             return res.status(404).json({
                 status: 'error',
@@ -109,7 +69,6 @@ const oneArticle = async (req, res) => {
             });
         }
 
-        // Devolver resultado
         return res.status(200).json({
             status: 'success',
             articulo,
@@ -118,20 +77,17 @@ const oneArticle = async (req, res) => {
         return res.status(500).json({
             status: 'error',
             mensaje: 'Error al buscar el artículo',
+            error: error.message,
         });
     }
 };
 
-// Eliminar un artículo
+// Eliminar un artículo por ID
 const deleteArticle = async (req, res) => {
     try {
-        // Obtener el id desde los parámetros de la URL
         let id = req.params.id;
+        let articuloBorrado = await Article.findByIdAndDelete(id);
 
-        // Buscar y eliminar el artículo
-        let articuloBorrado = await Articulo.findOneAndDelete({ _id: id });
-
-        // Si el artículo no existe, devolver un error
         if (!articuloBorrado) {
             return res.status(404).json({
                 status: 'error',
@@ -139,7 +95,6 @@ const deleteArticle = async (req, res) => {
             });
         }
 
-        // Respuesta exitosa
         return res.status(200).json({
             status: 'success',
             articulo: articuloBorrado,
@@ -149,6 +104,45 @@ const deleteArticle = async (req, res) => {
         return res.status(500).json({
             status: 'error',
             mensaje: 'Error al eliminar el artículo',
+            error: error.message,
+        });
+    }
+};
+
+// Editar un artículo por ID (sin validaciones)
+const editArticle = async (req, res) => {
+    try {
+        let articleId = req.params.id;
+        let parametros = req.body;
+
+        // Mapear `titulo` a `title` y `contenido` a `content`
+        const datosActualizados = {
+            title: parametros.titulo || parametros.title,
+            content: parametros.contenido || parametros.content,
+        };
+
+        let articuloActualizado = await Article.findByIdAndUpdate(
+            articleId,
+            datosActualizados,
+            { new: true } // Devuelve el documento actualizado sin validaciones
+        );
+
+        if (!articuloActualizado) {
+            return res.status(404).json({
+                status: 'error',
+                mensaje: 'No se encontró el artículo para actualizar',
+            });
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            articulo: articuloActualizado,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            mensaje: 'Error al actualizar el artículo',
+            error: error.message,
         });
     }
 };
@@ -159,4 +153,5 @@ module.exports = {
     conseguirArticulos,
     oneArticle,
     deleteArticle,
+    editArticle,
 };

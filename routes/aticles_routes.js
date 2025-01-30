@@ -15,6 +15,8 @@ router.get('/obtener-articulos', ArticleController.conseguirArticulos);
 router.get('/search-article/:id', ArticleController.oneArticle);
 // Eliminar un articulo
 router.delete('/delete/:id', ArticleController.deleteArticle);
+// Editar articulo
+router.put('/editar-articulo/:id', ArticleController.editArticle);
 
 // Exportacion de la ruta
 module.exports = router;

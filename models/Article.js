@@ -1,13 +1,13 @@
 const { Schema, model } = require('mongoose');
 
-const ArticleSchema = Schema({
+const ArticleSchema = new Schema({
     title: {
         type: String,
-        require: true,
+        required: true, // ✅ Corregido: `require` → `required`
     },
     content: {
         type: String,
-        require: true,
+        required: true, // ✅ Corregido: `require` → `required`
     },
     date: {
         type: Date,
